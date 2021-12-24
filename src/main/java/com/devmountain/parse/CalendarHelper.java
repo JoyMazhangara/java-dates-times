@@ -1,5 +1,6 @@
 package com.devmountain.parse;
 
+import java.nio.file.attribute.AclEntry;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
@@ -45,37 +46,66 @@ public class CalendarHelper {
          */
 
         // you code here
+        LocalDate nowLocaleDate = LocalDate.now();
+        int nowDayOfYear = nowLocaleDate.getDayOfYear();
+        int birthDayOfYear = birthdayLocalDate.getDayOfYear();
+        int remainingDay = 0;
+        int smallestRemainingDays = 1000;
+        LocalDate closestHoliday = null;
         for (LocalDate eachHoliday : holidayList) {
-             int dayOfYear = eachHoliday.getDayOfYear();
-             LocalDate nowLocaleDate = LocalDate.now();
-             int nowDayOfYear = nowLocaleDate.getDayOfYear();
-             int remainingDay = dayOfYear - nowDayOfYear;
+            int dayOfYearHoliday = eachHoliday.getDayOfYear();
+            if (nowDayOfYear <= dayOfYearHoliday) {
+                remainingDay = dayOfYearHoliday - nowDayOfYear;
+                if (isRemainingDaySmallest(smallestRemainingDays, remainingDay)) {
+                    smallestRemainingDays = remainingDay;
+                    closestHoliday = eachHoliday;
+                    System.out.println();
+                }
                 //Display the remainingDay between the current day and the corresponding holiday
-               System.out.println("There are " + remainingDay + " days remaining before Holiday (" + formatter.format(eachHoliday) + ")");
+                System.out.println("There are " + remainingDay + " days remaining before Holiday (" + formatter.format(eachHoliday) + ")");
+            } else {
+                remainingDay = 365 - nowDayOfYear + dayOfYearHoliday;
+                if (isRemainingDaySmallest(smallestRemainingDays, remainingDay)) {
+                    smallestRemainingDays = remainingDay;
+                    closestHoliday = eachHoliday;
+                    System.out.println();
+                }
+                //Display the remainingDay between the current day and the corresponding holiday
+                System.out.println("There are " + remainingDay + " days remaining before Holiday (" + formatter.format(eachHoliday) + ")");
+            }
         }
         //Display the Holiday which is closest to the current day
-//        System.out.println("the closest Holiday to the current date (" + formatter.format(nowLocalDate) + ") is: " + formatter.format(closestHoliday));
+        System.out.println("the closest Holiday to the current date (" + formatter.format(nowLocalDate) + ") is: " + formatter.format(closestHoliday));
 
         /*
          * Now start calculating the remaining day between the current date and the birthday
          */
 
-        LocalDate nowLocaleDate = LocalDate.now();
-        int nowDayOfYear = nowLocaleDate.getDayOfYear();
-        int birthDayOfYear = birthdayLocalDate.getDayOfYear();
-        int remainingDay = birthDayOfYear - nowDayOfYear;
+
         int nowYear = nowLocaleDate.getYear();
         int birthYear = birthdayLocalDate.getYear();
         int age = nowYear - birthYear;
-        int nextYear = nowYear + 1;
-        int birthDay = birthdayLocalDate.getDayOfMonth();
-        int birthMonth = birthdayLocalDate.getMonthValue();
-        LocalDate nextBirthdayLocalDate = LocalDate.of(nextYear,birthMonth,birthDay);
+
+        LocalDate nextBirthdayLocalDate = birthdayLocalDate.withYear(nowDayOfYear);
+        if (nowDayOfYear <= birthDayOfYear) {
+            remainingDay = birthDayOfYear - nowDayOfYear;
+        } else {
+            remainingDay = birthDayOfYear + 365 - nowDayOfYear;
+            age++;
+            nextBirthdayLocalDate = birthdayLocalDate.withYear(nowYear + 1);
+        }
 
          //Display the remainingDay between the current day and the birthday
        System.out.println("There are " + remainingDay + " days remaining before your " + age + "th birthday (" + formatter.format(nextBirthdayLocalDate) + ")");
     }
 
+        private  boolean isRemainingDaySmallest(int smallestRemainingDay, int remainingDay) {
+            boolean isSmallest = false;
+            if(remainingDay < smallestRemainingDay) {
+                isSmallest = true;
+            }
+            return isSmallest;
+        }
 
     private List<LocalDate> initHolidayList(int currentYear, LocalDate nowLocalDate) {
         List<LocalDate> holidayList = new ArrayList<>(5);
